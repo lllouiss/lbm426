@@ -1,62 +1,67 @@
 # Umsetzungsplan – Casino (Blackjack & Roulette)
 
-Referenz: `AGENTS.md` (Projekt-Kontext-Abschnitt) für die verbindlichen Regeln (TDD, Patterns, Branching). Dieser Plan bricht die Arbeit in Feature-Branches herunter, die 1:1 auf User Stories (`US-1` … `US-6`) mappen sollten — **US-IDs unten sind Platzhalter, beim Erstellen der echten Branches durch eure tatsächlichen IDs ersetzen.**
+Referenz: `AGENTS.md` (Projekt-Kontext) für die verbindlichen Regeln (TDD, Patterns, Branching). User Stories und Akzeptanzkriterien: `LB_426_Personas.pptx` (US-001 … US-006).
 
 Jeder Schritt folgt demselben Ablauf (Definition of Done):
-1. Branch von `main`: `feature/<US-ID>-<kurzbeschreibung>`
+1. Branch von `main`: `feature/<US-ID>-<kurzbeschreibung>` (echte ID, z.B. `US-005`)
 2. Tests schreiben → committen → pushen (roter Test)
 3. Implementieren, bis Test grün → committen → pushen
-4. Branch stichwortartig dokumentieren (Lösungsdokument/MR-Beschreibung)
+4. Branch stichwortartig dokumentieren (Lösungsdokument / MR-Beschreibung)
 5. Merge Request → Review durch Teampartner → Merge nach `main`
 
+## User Stories (Quelle: LB_426_Personas.pptx)
+| ID | Inhalt |
+|---|---|
+| US-001 | Frei gewählten Betrag in Jetons umwandeln |
+| US-002 | Im Hauptmenü zwischen den verfügbaren Spielen wählen |
+| US-003 | Blackjack: Einsatz und Gegnerzahl festlegen, Hit/Stand |
+| US-004 | Roulette: mehrere Felder mit Farb-/Nummerneinsätzen besetzen |
+| US-005 | Jeton-Kontostand nach jeder Änderung sofort angezeigt (Observer) |
+| US-006 | Casino verlassen, restliche Jetons auszahlen, Schlussbilanz |
+
 ---
 
-## Phase 0 — Setup (gemeinsam, kein Feature-Branch nötig oder `chore/setup`)
-- [ ] GitLab-Projekt auf git.bbbaden.ch anlegen, Sichtbarkeit auf Team + Lehrperson (Maintainer) beschränken
+## Phase 0 — Setup (`chore/setup`, gemeinsam)
+- [ ] GitLab: Projekt auf git.bbbaden.ch, Sichtbarkeit nur Team + Lehrperson (Maintainer)
 - [ ] MR-Settings: "Enable 'Delete source branch' by default" deaktivieren
-- [ ] Testing-Setup: Vitest + React Testing Library installieren und konfigurieren
-- [ ] Basis-Ordnerstruktur anlegen: `src/games/`, `src/games/registry.ts`, `src/lib/wallet/`, `src/lib/observer/`
-- [ ] Lösungsdokument anlegen (Word/PDF) mit Gliederung für: User Stories, Pattern-Begründung, Branch-Dokumentation, SOLID-Beurteilung, Retrospektive
+- [ ] Vitest + React Testing Library installieren (`npm i -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event`); Konfiguration (`vitest.config.ts`, `vitest.setup.ts`, `npm test`) liegt bereits im Branch
+- [ ] Ordnerstruktur: `src/games/`, `src/lib/wallet/`, `src/lib/observer/` (liegt im Branch)
+- [ ] `Game`-Interface kurz gemeinsam absprechen, bevor die Branches getrennt werden
 
-## Phase 1 — Kern-Architektur (bevor die Spiele gebaut werden)
-Diese Teile werden von beiden Spielen gebraucht, deshalb zuerst.
+## Phase 1 — Kern (vor den Spielen)
+- [ ] **US-005** `feature/US-005-observer-wallet` — GoF-Observer (`Subject`/`Observer`, `subscribe()`/`unsubscribe()`/`notify()`) + `Wallet` als Subject (Gutschrift, Einsatz, Auszahlung)
+  - Tests zuerst: Stand nach Gewinn/Verlust, Observer wird bei jeder Änderung benachrichtigt, mehrere Observer, Observer anhängbar ohne Änderung am Wallet
+- [ ] **US-001** `feature/US-001-jetons-umwandeln` — Betrag → Jetons (nutzt Wallet)
+  - Tests zuerst: positiver Betrag wird gutgeschrieben; 0, negativ, ungültig (NaN, Text) abgelehnt
+- [ ] **US-002** `feature/US-002-game-registry` — `Game`-Interface (Strategy) + `registry.ts` + Spielauswahl-Menü
+  - Tests zuerst: alle registrierten Spiele gelistet; ungültige Auswahl abgewiesen; bei 0 Jetons Start blockiert
+- [ ] **US-006** `feature/US-006-casino-verlassen` — «Aufhören», Auszahlung, Bilanz (Einzahlung, Endstand, Differenz)
+  - Tests zuerst: Bilanz-Berechnung; während laufender Runde nicht wählbar; Beenden ohne Absturz
 
-- [ ] **US-1** `feature/US-1-observer-wallet` — Generisches Observer-Pattern (`Subject`/`Observer`-Interfaces mit `subscribe()`/`notify()`) + `Wallet`-Klasse (Jetons-Bestand, Einsatz, Auszahlung) als konkretes Subject
-  - Tests zuerst: Wallet-Auf-/Abbuchung, Observer wird bei Änderung benachrichtigt, mehrere Observer gleichzeitig
-- [ ] **US-2** `feature/US-2-game-registry` — `Game`-Interface (Strategy Pattern) + `registry.ts`, das Spiele zur Laufzeit registriert/auflistet
-  - Tests zuerst: Registry gibt registrierte Spiele zurück, unbekanntes Spiel liefert definierten Fehler/Fallback
-- [ ] **US-3** `feature/US-3-casino-shell` — Grundgerüst-UI: Betrag eingeben → in Jetons umwandeln (nutzt Wallet), Spielauswahl-Screen (nutzt Registry), Rückkehr-zur-Auswahl-Flow
-  - Tests zuerst: Betrag→Jetons-Umrechnung, Navigation zwischen Auswahl und Spiel
+→ US-005 zuerst (Wallet wird von allen gebraucht). US-001, US-002, US-006 danach parallel auf beide Personen verteilbar.
 
-→ Diese drei Branches sind idealerweise von unterschiedlichen Teammitgliedern parallelisierbar, sobald das `Game`-Interface (US-2) grob feststeht (kurz gemeinsam absprechen, dann trennen).
+## Phase 2 — Blackjack (Teammitglied A)
+- [ ] **US-003** `feature/US-003-blackjack-logic` — reine Logik: Deck, Kartenwerte (Ass 1/11), Bust >21, Dealer/Gegner ziehen bis 17, Gegnerzahl 1–5, Auszahlungsfaktor steigt mit Gegnerzahl, Einsatz ≤ Guthaben
+- [ ] **US-003** `feature/US-003-blackjack-ui` — UI (Einsatz, Gegnerzahl, Hit/Stand) über `Game`-Interface, Wallet-Update nach Rundenende
 
-## Phase 2 — Blackjack (ein Teammitglied)
-- [ ] **US-4** `feature/US-4-blackjack-logic` — Spiellogik pur (Karten/Deck, Werte, Hit/Stand, Dealer-Regeln, Gewinn-/Verlustermittlung) als reine Funktionen/Klassen ohne UI
-  - Tests zuerst: Kartenwert-Berechnung (inkl. Ass 1/11), Bust-Erkennung, Blackjack-Erkennung, Dealer-Logik, Gewinnermittlung bei mehreren Gegnern
-- [ ] **US-5** `feature/US-5-blackjack-ui` — UI, die die Logik aus US-4 über das `Game`-Interface anbindet; Einsatz + Anzahl Gegner wählbar; Auszahlung steigt mit Anzahl Gegnern
-  - Tests zuerst: Komponenten-Tests (RTL) für Einsatz-Auswahl, Spielverlauf-Rendering, Wallet-Update nach Spielende
+## Phase 3 — Roulette (Teammitglied B, parallel zu Phase 2)
+- [ ] **US-004** `feature/US-004-roulette-logic` — reine Logik: Zahlenkreis, Farben, Farbe 1:1, Nummer 35:1, 0 → Farbeinsätze verloren, mehrere gleichzeitige Wetten, Summe aller Einsätze ≤ Guthaben
+- [ ] **US-004** `feature/US-004-roulette-ui` — UI zum Setzen auf Farben/Nummern, Einsatzübersicht vor dem Dreh, Wallet-Update
 
-## Phase 3 — Roulette (anderes Teammitglied, parallel zu Phase 2 möglich)
-- [ ] **US-6** `feature/US-6-roulette-logic` — Spiellogik pur (Zahlenkreis, Farben, Auszahlungsquoten je Wettart, mehrere gleichzeitige Wetten)
-  - Tests zuerst: Auszahlung pro Wettart (Zahl, Farbe, ggf. weitere), gleichzeitige Wetten auf mehrere Felder, ungültige Wetten
-- [ ] `feature/<US-ID>-roulette-ui` (falls als eigene User Story geführt) — UI zum Setzen auf Farben/Nummern, Anbindung an Wallet/Registry
-  - Tests zuerst: Wett-Eingabe, Rad-Ergebnis-Anzeige, Wallet-Update nach Spielende
+(Mehrere Branches pro User Story sind erlaubt; die ID steht im Branch-Namen.)
 
-## Phase 4 — Qualitätssicherung (nach beiden Spielen)
-- [ ] Code-Smell-Review: Duplikation zwischen Blackjack/Roulette identifizieren, ggf. in `src/lib/` extrahieren
-- [ ] SOLID-Review der fertigen Software durchführen, Verstösse + Verbesserungsvorschläge ins Lösungsdokument (Aufgabe 4-1)
-- [ ] ESLint/TypeScript strict ohne Fehler
+## Phase 4 — Qualitätssicherung
+- [ ] Code-Smell-Review: Duplikation zwischen den Spielen in `src/lib/` extrahieren
+- [ ] SOLID-Review, Verstösse + Verbesserungen ins Lösungsdokument (Aufgabe 4)
+- [ ] ESLint / TypeScript strict ohne Fehler
 
-## Phase 5 — Dokumentation & Abgabe (nicht-Code)
-- [ ] User Stories im Lösungsdokument mit IDs (bereits vorhanden — einfügen)
-- [ ] Designpattern-Begründung (Observer + Strategy) schreiben (Aufgabe 2-1)
-- [ ] Branch-Dokumentation zusammenführen (alle stichwortartigen Beschreibungen aus den MRs)
-- [ ] Retrospektive: 3 Hindernisse + je 1 Lösungsvorschlag, Fokus auf Praktiken/Zusammenarbeit (Aufgabe 5-1, 5-2)
-- [ ] Administrative Vorgaben prüfen: Ordner-/Zip-Naming `Name1Name2LB-426`, alles in einem File zusammengefasst, Abgabe auf Moodle
-
----
+## Phase 5 — Dokumentation & Abgabe
+- [ ] User Stories (vorhanden in Personas-PPTX) ins Lösungsdokument
+- [ ] Designpattern-Begründung (Observer + Strategy)
+- [ ] Branch-Dokumentation aus den MRs zusammenführen
+- [ ] Retrospektive: 3 Hindernisse + je 1 Lösungsvorschlag (Praktiken/Zusammenarbeit)
+- [ ] Abgabe: Ordner/Zip `Name1Name2LB-426`, alles in einem File, Moodle
 
 ## Offene Entscheidungen
-- Wer übernimmt Blackjack, wer Roulette? (Phase 2 vs. Phase 3)
-- Reale User-Story-IDs einsetzen, sobald verfügbar (aktuell Platzhalter US-1…US-6)
-- Ist die Next.js/TypeScript-Ausnahme zum vorgeschriebenen C# mit der Lehrperson abgesprochen?
+- Wer übernimmt Blackjack, wer Roulette?
+- Entscheid: Next.js/TypeScript ist mit der Lehrperson geklärt, GitHub ist erlaubt (laut Team)
