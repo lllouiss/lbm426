@@ -12,6 +12,7 @@ function assertValidAmount(amount: number, label: string): void {
  */
 export class Wallet extends BaseSubject<number> {
   private currentBalance: number;
+  private depositedTotal: number;
 
   constructor(initialBalance = 0) {
     super();
@@ -19,15 +20,22 @@ export class Wallet extends BaseSubject<number> {
       throw new RangeError("Der Anfangsbestand darf nicht negativ sein.");
     }
     this.currentBalance = initialBalance;
+    this.depositedTotal = initialBalance;
   }
 
   get balance(): number {
     return this.currentBalance;
   }
 
+  /** Summe aller Einzahlungen inkl. Anfangsbestand (ohne Gewinne). */
+  get totalDeposited(): number {
+    return this.depositedTotal;
+  }
+
   /** Schreibt Jetons gut (z.B. beim Umwandeln eines Betrags). */
   deposit(amount: number): void {
     assertValidAmount(amount, "Der Betrag");
+    this.depositedTotal += amount;
     this.change(amount);
   }
 
@@ -44,6 +52,13 @@ export class Wallet extends BaseSubject<number> {
   payout(amount: number): void {
     assertValidAmount(amount, "Der Gewinn");
     this.change(amount);
+  }
+
+  /** Zahlt alle restlichen Jetons aus und leert das Wallet. */
+  cashOut(): number {
+    const remaining = this.currentBalance;
+    this.change(-remaining);
+    return remaining;
   }
 
   private change(delta: number): void {
