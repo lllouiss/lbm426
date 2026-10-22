@@ -98,6 +98,74 @@ describe("Wallet", () => {
     );
   });
 
+  describe("totalDeposited (Einzahlungen, US-006)", () => {
+    it("zaehlt den Anfangsbestand als Einzahlung", () => {
+      expect(new Wallet(100).totalDeposited).toBe(100);
+    });
+
+    it("summiert alle Gutschriften", () => {
+      const wallet = new Wallet();
+
+      wallet.deposit(40);
+      wallet.deposit(60);
+
+      expect(wallet.totalDeposited).toBe(100);
+    });
+
+    it("zaehlt Einsaetze und Gewinne nicht als Einzahlung", () => {
+      const wallet = new Wallet(100);
+
+      wallet.placeBet(30);
+      wallet.payout(90);
+
+      expect(wallet.totalDeposited).toBe(100);
+    });
+
+    it("zaehlt eine abgelehnte Gutschrift nicht", () => {
+      const wallet = new Wallet(10);
+
+      expect(() => wallet.deposit(-5)).toThrow(RangeError);
+
+      expect(wallet.totalDeposited).toBe(10);
+    });
+  });
+
+  describe("cashOut (restliche Jetons auszahlen, US-006)", () => {
+    it("gibt den gesamten Bestand zurueck und leert das Wallet", () => {
+      const wallet = new Wallet(75);
+
+      const paidOut = wallet.cashOut();
+
+      expect(paidOut).toBe(75);
+      expect(wallet.balance).toBe(0);
+    });
+
+    it("zahlt bei leerem Wallet 0 aus, ohne einen Fehler zu werfen", () => {
+      const wallet = new Wallet();
+
+      expect(wallet.cashOut()).toBe(0);
+      expect(wallet.balance).toBe(0);
+    });
+
+    it("laesst die Summe der Einzahlungen unveraendert", () => {
+      const wallet = new Wallet(50);
+
+      wallet.cashOut();
+
+      expect(wallet.totalDeposited).toBe(50);
+    });
+
+    it("meldet den neuen Stand 0 an die Observer", () => {
+      const wallet = new Wallet(30);
+      const { observer, update } = createObserver();
+      wallet.subscribe(observer);
+
+      wallet.cashOut();
+
+      expect(update).toHaveBeenCalledWith(0);
+    });
+  });
+
   describe("Observer (US-005)", () => {
     it("meldet den neuen Stand nach einer Gutschrift", () => {
       const wallet = new Wallet(10);
