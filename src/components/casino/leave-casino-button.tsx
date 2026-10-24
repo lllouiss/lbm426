@@ -10,7 +10,7 @@ export function LeaveCasinoButton({ disabled, onLeave }: LeaveCasinoButtonProps)
       type="button"
       disabled={disabled}
       onClick={onLeave}
-      className="rounded-full border px-5 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+      className="self-start rounded-full border px-5 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
     >
       Aufhören
     </button>
