@@ -1,8 +1,5 @@
 import type { FinalBalance } from "@/lib/casino/final-balance";
-
-function formatChips(amount: number): string {
-  return `${amount} Jetons`;
-}
+import { formatChips } from "@/lib/chips/format-chips";
 
 function formatDifference(amount: number): string {
   return amount > 0 ? `+${formatChips(amount)}` : formatChips(amount);
