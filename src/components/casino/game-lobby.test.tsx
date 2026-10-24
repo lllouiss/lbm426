@@ -9,7 +9,7 @@ import { CasinoSession } from "@/lib/casino/casino-session";
 import { Wallet } from "@/lib/wallet/wallet";
 import { createFakeGame } from "@/test/fake-game";
 
-function renderLobby(balance: number, games: Game[]) {
+function renderLobby(balance: number, games: Game[], menuContent?: ReactNode) {
   const wallet = new Wallet(balance);
   const session = new CasinoSession(wallet);
   render(
@@ -17,7 +17,9 @@ function renderLobby(balance: number, games: Game[]) {
       registry={new GameRegistry(games)}
       wallet={wallet}
       session={session}
-    />,
+    >
+      {menuContent}
+    </GameLobby>,
   );
   return { wallet, session };
 }
@@ -108,5 +110,23 @@ describe("GameLobby (US-002)", () => {
     expect(
       screen.getByRole("button", { name: "Blackjack spielen" }),
     ).toBeDisabled();
+  });
+
+  it("zeigt weitere Inhalte des Hauptmenues neben der Spielauswahl (US-001)", () => {
+    renderLobby(100, [blackjack], <p>Einzahlung</p>);
+
+    expect(screen.getByText("Einzahlung")).toBeInTheDocument();
+  });
+
+  it("blendet weitere Inhalte waehrend eines Spiels aus (US-001)", async () => {
+    renderLobby(100, [blackjack], <p>Einzahlung</p>);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Blackjack spielen" }),
+    );
+    expect(screen.queryByText("Einzahlung")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Spiel beenden" }));
+    expect(screen.getByText("Einzahlung")).toBeInTheDocument();
   });
 });
