@@ -65,6 +65,8 @@ describe("convertToChips (US-001)", () => {
       ["negativer Text", "-5"],
       ["Kommazahl als Text", "10.5"],
       ["Exponentialschreibweise", "1e3"],
+      ["zu grosse Zahl", Number.MAX_SAFE_INTEGER + 1],
+      ["zu grosse Zahl als Text", "99999999999999999999"],
     ])("lehnt %s ab und laesst den Bestand unveraendert", (_label, amount) => {
       const wallet = new Wallet(10);
 

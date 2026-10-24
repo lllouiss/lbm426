@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Game } from "@/games/game";
 import type { GameRegistry } from "@/games/game-registry";
 import { selectGame } from "@/games/game-selection";
@@ -11,10 +11,12 @@ interface GameLobbyProps {
   registry: GameRegistry;
   wallet: Wallet;
   session: CasinoSession;
+  /** Weitere Inhalte des Hauptmenues; waehrend eines Spiels ausgeblendet. */
+  children?: ReactNode;
 }
 
 /** Zeigt die Spielauswahl oder das gewaehlte Spiel. */
-export function GameLobby({ registry, wallet, session }: GameLobbyProps) {
+export function GameLobby({ registry, wallet, session, children }: GameLobbyProps) {
   const balance = useWalletBalance(wallet);
   const [activeGame, setActiveGame] = useState<Game | null>(null);
 
@@ -29,10 +31,13 @@ export function GameLobby({ registry, wallet, session }: GameLobbyProps) {
   }
 
   return (
-    <GameMenu
-      games={registry.all}
-      balance={balance}
-      onSelect={(gameId) => setActiveGame(selectGame(registry, gameId, balance))}
-    />
+    <>
+      <GameMenu
+        games={registry.all}
+        balance={balance}
+        onSelect={(gameId) => setActiveGame(selectGame(registry, gameId, balance))}
+      />
+      {children}
+    </>
   );
 }

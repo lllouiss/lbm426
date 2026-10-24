@@ -18,7 +18,7 @@ function parseTextAmount(text: string): number {
  */
 export function convertToChips(wallet: Wallet, input: number | string): number {
   const amount = parseAmount(input);
-  if (!Number.isInteger(amount) || amount <= 0) {
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
     throw new RangeError("Der Betrag muss eine positive ganze Zahl sein.");
   }
   wallet.deposit(amount);
