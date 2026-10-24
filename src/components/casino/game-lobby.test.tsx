@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GameLobby } from "./game-lobby";
 import type { Game, GameProps } from "@/games/game";
@@ -17,7 +17,6 @@ function renderLobby(balance: number, games: Game[]) {
       registry={new GameRegistry(games)}
       wallet={wallet}
       session={session}
-      balance={balance}
     />,
   );
   return { wallet, session };
@@ -89,5 +88,25 @@ describe("GameLobby (US-002)", () => {
     expect(
       screen.getByRole("heading", { name: "Spielauswahl" }),
     ).toBeInTheDocument();
+  });
+
+  it("gibt den Start frei, sobald Jetons im Wallet sind (Observer, US-005)", () => {
+    const { wallet } = renderLobby(0, [blackjack]);
+    const startButton = screen.getByRole("button", { name: "Blackjack spielen" });
+    expect(startButton).toBeDisabled();
+
+    act(() => wallet.deposit(50));
+
+    expect(startButton).toBeEnabled();
+  });
+
+  it("sperrt den Start wieder, wenn alle Jetons verspielt sind (Observer, US-005)", () => {
+    const { wallet } = renderLobby(20, [blackjack]);
+
+    act(() => wallet.placeBet(20));
+
+    expect(
+      screen.getByRole("button", { name: "Blackjack spielen" }),
+    ).toBeDisabled();
   });
 });
