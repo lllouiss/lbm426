@@ -28,7 +28,7 @@ function renderGame(deck: Rank[], balance = 100) {
 async function deal(bet: string, opponents = 1) {
   const betInput = screen.getByRole("textbox", { name: "Einsatz" });
   await userEvent.clear(betInput);
-  await userEvent.type(betInput, bet);
+  if (bet) await userEvent.type(betInput, bet);
   await userEvent.click(
     screen.getByRole("radio", {
       name: opponents === 1 ? "1 Gegner" : `${opponents} Gegner`,

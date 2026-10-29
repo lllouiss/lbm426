@@ -17,7 +17,7 @@ interface RoundSetup {
 
 /** Eine Blackjack-Runde: Spieler gegen 1 bis 5 Computergegner. */
 export class BlackjackRound {
-  private readonly bet: number;
+  readonly bet: number;
   private readonly deck: Card[];
   private readonly player: Card[];
   private readonly opponents: Card[][];
