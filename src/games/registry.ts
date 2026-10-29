@@ -1,3 +1,4 @@
+import { blackjackGame } from "./blackjack";
 import { GameRegistry } from "./game-registry";
 
 /**
@@ -5,5 +6,6 @@ import { GameRegistry } from "./game-registry";
  * angemeldet; Menue und Casino muessen dafuer nicht angepasst werden.
  */
 export const gameRegistry = new GameRegistry([
-  // US-003: Blackjack, US-004: Roulette
+  blackjackGame,
+  // US-004: Roulette
 ]);
