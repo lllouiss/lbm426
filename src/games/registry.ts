@@ -1,5 +1,6 @@
 import { blackjackGame } from "./blackjack";
 import { GameRegistry } from "./game-registry";
+import { rouletteGame } from "./roulette";
 
 /**
  * Zentrales Register aller Spiele im Casino. Ein neues Spiel wird nur hier
@@ -7,5 +8,5 @@ import { GameRegistry } from "./game-registry";
  */
 export const gameRegistry = new GameRegistry([
   blackjackGame,
-  // US-004: Roulette
+  rouletteGame,
 ]);
