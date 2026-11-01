@@ -1,12 +1,7 @@
 import { formatChips } from "@/lib/chips/format-chips";
 import { colorName } from "./bet-label";
-import { colorOf, type PocketColor } from "./wheel";
-
-const BALL_STYLES: Record<PocketColor, string> = {
-  red: "bg-red-600",
-  black: "bg-neutral-900",
-  green: "bg-emerald-600",
-};
+import { POCKET_STYLES } from "./pocket-styles";
+import { colorOf } from "./wheel";
 
 interface SpinResultProps {
   result: number;
@@ -37,7 +32,7 @@ export function SpinResult({
     <div className="flex flex-col items-center gap-5">
       <div
         aria-hidden="true"
-        className={`animate-pop flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-4xl font-bold text-white shadow-2xl ${BALL_STYLES[color]}`}
+        className={`animate-pop flex h-24 w-24 items-center justify-center rounded-full border-4 border-white text-4xl font-bold text-white shadow-2xl ${POCKET_STYLES[color]}`}
       >
         {result}
       </div>

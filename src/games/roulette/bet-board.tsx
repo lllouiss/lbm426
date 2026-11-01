@@ -1,18 +1,14 @@
 import { useState } from "react";
+import { useInputError } from "@/hooks/use-input-error";
 import { formatChips } from "@/lib/chips/format-chips";
 import { parseChipAmount } from "@/lib/chips/parse-chip-amount";
 import type { BetColor, RouletteBet } from "./bets";
 import { colorName } from "./bet-label";
-import { MAX_NUMBER, colorOf, type PocketColor } from "./wheel";
+import { POCKET_STYLES } from "./pocket-styles";
+import { MAX_NUMBER, colorOf } from "./wheel";
 
 const NUMBERS = Array.from({ length: MAX_NUMBER }, (_, index) => index + 1);
 const BET_COLORS: BetColor[] = ["red", "black"];
-
-const FIELD_STYLES: Record<PocketColor, string> = {
-  red: "bg-red-600",
-  black: "bg-neutral-900",
-  green: "bg-emerald-600",
-};
 
 const FIELD_BUTTON =
   "rounded-md border border-white/40 font-bold text-white shadow transition hover:-translate-y-0.5 hover:ring-2 hover:ring-amber-300 active:scale-95";
@@ -24,16 +20,10 @@ interface BetBoardProps {
 
 export function BetBoard({ balance, onBet }: BetBoardProps) {
   const [amount, setAmount] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { error, attempt } = useInputError();
 
   function place(createBet: (amount: number) => RouletteBet) {
-    try {
-      onBet(createBet(parseChipAmount(amount)));
-      setError(null);
-    } catch (rejection) {
-      if (!(rejection instanceof RangeError)) throw rejection;
-      setError(rejection.message);
-    }
+    attempt(() => onBet(createBet(parseChipAmount(amount))));
   }
 
   function numberField(number: number) {
@@ -43,7 +33,7 @@ export function BetBoard({ balance, onBet }: BetBoardProps) {
         type="button"
         aria-label={`Nummer ${number}`}
         onClick={() => place((chips) => ({ type: "number", number, amount: chips }))}
-        className={`${FIELD_BUTTON} ${FIELD_STYLES[colorOf(number)]} h-10`}
+        className={`${FIELD_BUTTON} ${POCKET_STYLES[colorOf(number)]} h-10`}
       >
         {number}
       </button>
@@ -71,7 +61,7 @@ export function BetBoard({ balance, onBet }: BetBoardProps) {
             key={color}
             type="button"
             onClick={() => place((chips) => ({ type: "color", color, amount: chips }))}
-            className={`${FIELD_BUTTON} ${FIELD_STYLES[color]} py-3 text-lg`}
+            className={`${FIELD_BUTTON} ${POCKET_STYLES[color]} py-3 text-lg`}
           >
             {colorName(color)}
           </button>
