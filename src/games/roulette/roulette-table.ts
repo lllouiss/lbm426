@@ -1,4 +1,4 @@
-import { BaseSubject } from "@/lib/observer/subject";
+import { RevisionedSubject } from "@/lib/observer/revisioned-subject";
 import type { CasinoSession } from "@/lib/casino/casino-session";
 import type { Wallet } from "@/lib/wallet/wallet";
 import type { RouletteBet } from "./bets";
@@ -10,9 +10,8 @@ import { spinWheel } from "./wheel";
  * Einsaetze, bucht sie beim Drehen ab und schreibt die Gewinne gut.
  * Als Subject informiert er die UI bei jeder Aenderung (Observer-Pattern).
  */
-export class RouletteTable extends BaseSubject<RouletteRound> {
+export class RouletteTable extends RevisionedSubject<RouletteRound> {
   private current: RouletteRound;
-  private changes = 0;
 
   constructor(
     private readonly wallet: Wallet,
@@ -27,26 +26,21 @@ export class RouletteTable extends BaseSubject<RouletteRound> {
     return this.current;
   }
 
-  /** Zaehlt die Aenderungen; dient der UI als Momentaufnahme. */
-  get revision(): number {
-    return this.changes;
-  }
-
   placeBet(bet: RouletteBet): void {
     this.current.placeBet(bet);
-    this.publish();
+    this.publish(this.current);
   }
 
   removeBet(index: number): void {
     this.current.removeBet(index);
-    this.publish();
+    this.publish(this.current);
   }
 
   /** Dreht das Rad; ohne Einsatz bleibt alles unveraendert. */
   spin(): number {
     const result = this.current.spin(this.spinner);
     this.book(this.current);
-    this.publish();
+    this.publish(this.current);
     return result;
   }
 
@@ -56,7 +50,7 @@ export class RouletteTable extends BaseSubject<RouletteRound> {
       throw new Error("Die Runde laeuft noch.");
     }
     this.current = new RouletteRound(this.wallet.balance);
-    this.publish();
+    this.publish(this.current);
   }
 
   private book(round: RouletteRound): void {
@@ -66,10 +60,5 @@ export class RouletteTable extends BaseSubject<RouletteRound> {
       this.wallet.payout(round.payout);
     }
     this.session.finishRound();
-  }
-
-  private publish(): void {
-    this.changes += 1;
-    this.notify(this.current);
   }
 }

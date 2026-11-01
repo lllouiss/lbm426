@@ -2,12 +2,13 @@ import type { Card, Rank } from "./cards";
 
 export const BLACKJACK = 21;
 const ACE_BONUS = 10;
+const FACE_CARD_VALUE = 10;
 
 const FACE_CARDS: readonly Rank[] = ["J", "Q", "K"];
 
 function cardValue(rank: Rank): number {
   if (rank === "A") return 1;
-  if (FACE_CARDS.includes(rank)) return 10;
+  if (FACE_CARDS.includes(rank)) return FACE_CARD_VALUE;
   return Number(rank);
 }
 

@@ -1,4 +1,4 @@
-import { BaseSubject } from "@/lib/observer/subject";
+import { RevisionedSubject } from "@/lib/observer/revisioned-subject";
 import type { CasinoSession } from "@/lib/casino/casino-session";
 import type { Wallet } from "@/lib/wallet/wallet";
 import { createDeck, shuffle, type Card } from "./cards";
@@ -12,9 +12,8 @@ const freshShuffledDeck = () => shuffle(createDeck());
  * Einsatz ab, meldet die laufende Runde und schreibt den Gewinn gut.
  * Als Subject informiert er die UI bei jeder Aenderung (Observer-Pattern).
  */
-export class BlackjackTable extends BaseSubject<BlackjackRound | null> {
+export class BlackjackTable extends RevisionedSubject<BlackjackRound | null> {
   private current: BlackjackRound | null = null;
-  private changes = 0;
 
   constructor(
     private readonly wallet: Wallet,
@@ -26,11 +25,6 @@ export class BlackjackTable extends BaseSubject<BlackjackRound | null> {
 
   get round(): BlackjackRound | null {
     return this.current;
-  }
-
-  /** Zaehlt die Aenderungen; dient der UI als Momentaufnahme. */
-  get revision(): number {
-    return this.changes;
   }
 
   /** Teilt aus; bei ungueltiger Eingabe bleibt alles unveraendert. */
@@ -47,7 +41,7 @@ export class BlackjackTable extends BaseSubject<BlackjackRound | null> {
     this.session.startRound();
     this.wallet.placeBet(bet);
     this.current = round;
-    this.publish();
+    this.publish(this.current);
   }
 
   hit(): void {
@@ -66,7 +60,7 @@ export class BlackjackTable extends BaseSubject<BlackjackRound | null> {
       throw new Error("Die Runde laeuft noch.");
     }
     this.current = null;
-    this.publish();
+    this.publish(this.current);
   }
 
   private activeRound(): BlackjackRound {
@@ -84,11 +78,6 @@ export class BlackjackTable extends BaseSubject<BlackjackRound | null> {
       }
       this.session.finishRound();
     }
-    this.publish();
-  }
-
-  private publish(): void {
-    this.changes += 1;
-    this.notify(this.current);
+    this.publish(this.current);
   }
 }

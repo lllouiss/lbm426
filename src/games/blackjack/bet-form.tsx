@@ -1,9 +1,10 @@
 import { useState, type SubmitEvent } from "react";
+import { useInputError } from "@/hooks/use-input-error";
 import { formatChips } from "@/lib/chips/format-chips";
+import { parseChipAmount } from "@/lib/chips/parse-chip-amount";
 import { MAX_OPPONENTS, MIN_OPPONENTS, payoutFactor } from "./rules";
 
 const QUICK_BETS = [10, 50, 100];
-const WHOLE_NUMBER = /^\d+$/;
 const OPPONENT_OPTIONS = Array.from(
   { length: MAX_OPPONENTS - MIN_OPPONENTS + 1 },
   (_, index) => MIN_OPPONENTS + index,
@@ -15,24 +16,14 @@ interface BetFormProps {
   onExit: () => void;
 }
 
-function parseBet(text: string): number {
-  const trimmed = text.trim();
-  return WHOLE_NUMBER.test(trimmed) ? Number(trimmed) : Number.NaN;
-}
-
 export function BetForm({ balance, onDeal, onExit }: BetFormProps) {
   const [bet, setBet] = useState("");
   const [opponentCount, setOpponentCount] = useState(MIN_OPPONENTS);
-  const [error, setError] = useState<string | null>(null);
+  const { error, attempt } = useInputError();
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    try {
-      onDeal(parseBet(bet), opponentCount);
-    } catch (rejection) {
-      if (!(rejection instanceof RangeError)) throw rejection;
-      setError(rejection.message);
-    }
+    attempt(() => onDeal(parseChipAmount(bet), opponentCount));
   }
 
   return (

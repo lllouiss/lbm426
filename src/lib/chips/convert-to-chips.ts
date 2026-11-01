@@ -1,14 +1,8 @@
 import type { Wallet } from "../wallet/wallet";
-
-const WHOLE_NUMBER = /^\d+$/;
+import { parseChipAmount } from "./parse-chip-amount";
 
 function parseAmount(input: number | string): number {
-  return typeof input === "string" ? parseTextAmount(input) : input;
-}
-
-function parseTextAmount(text: string): number {
-  const trimmed = text.trim();
-  return WHOLE_NUMBER.test(trimmed) ? Number(trimmed) : Number.NaN;
+  return typeof input === "string" ? parseChipAmount(input) : input;
 }
 
 /**

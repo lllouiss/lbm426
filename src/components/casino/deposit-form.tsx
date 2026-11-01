@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from "react";
+import { useInputError } from "@/hooks/use-input-error";
 import { convertToChips } from "@/lib/chips/convert-to-chips";
 import type { Wallet } from "@/lib/wallet/wallet";
 
@@ -8,18 +9,14 @@ interface DepositFormProps {
 
 export function DepositForm({ wallet }: DepositFormProps) {
   const [amount, setAmount] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { error, attempt } = useInputError();
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    try {
+    attempt(() => {
       convertToChips(wallet, amount);
       setAmount("");
-      setError(null);
-    } catch (rejection) {
-      if (!(rejection instanceof RangeError)) throw rejection;
-      setError(rejection.message);
-    }
+    });
   }
 
   return (
